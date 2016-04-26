@@ -20,6 +20,7 @@
                             #"Input to create-pool-context does not match schema"
                             (jruby-core/create-pool-context malformed-config nil)))))
   (let [minimal-config {:jruby {:gem-home        "/dev/null"
+                                :env-whitelist   []
                                 :ruby-load-path  ["/dev/null"]}}
         config        (jruby-core/initialize-config minimal-config)]
     (testing "max-active-instances is set to default if not specified"

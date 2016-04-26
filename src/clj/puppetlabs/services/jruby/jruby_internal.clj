@@ -49,8 +49,9 @@
   "The environment variables that should be passed to the JRuby interpreters.
 
   We don't want them to read any ruby environment variables, like $RUBY_LIB or
-  anything like that, so pass it an empty environment map - except - Puppet
-  needs HOME and PATH for facter resolution, so leave those, along with GEM_HOME
+  anything like that, so pass it an empty environment map - except we allow
+  for passing in a vector of variable names that we will whitelist and leave
+  (e.g. Puppet needs HOME and PATH for facter resolution), along with GEM_HOME
   which is necessary for third party extensions that depend on gems.
 
   We need to set the JARS..REQUIRE variables in order to instruct JRuby's
@@ -62,9 +63,9 @@
   JARS_NO_REQUIRE is honored.  Setting both of those here for forward
   compatibility."
   [env :- jruby-schemas/EnvMap
-   gem-home :- schema/Str]
-  (let [whitelist ["HOME" "PATH"]
-        clean-env (select-keys env whitelist)]
+   gem-home :- schema/Str
+   whitelist :- [schema/Str]]
+  (let [clean-env (select-keys env whitelist)]
     (assoc clean-env
       "GEM_HOME" gem-home
       "JARS_NO_REQUIRE" "true"
@@ -83,32 +84,35 @@
   [jruby-config :- jruby-schemas/ConfigurableJRuby
    ruby-load-path :- [schema/Str]
    gem-home :- schema/Str
-   compile-mode :- jruby-schemas/SupportedJRubyCompileModes]
+   compile-mode :- jruby-schemas/SupportedJRubyCompileModes
+   env-whitelist :- [schema/Str]]
   (doto jruby-config
     (.setLoadPaths ruby-load-path)
     (.setCompatVersion compat-version)
     (.setCompileMode (get-compile-mode compile-mode))
-    (.setEnvironment (managed-environment (get-system-env) gem-home))))
+    (.setEnvironment (managed-environment (get-system-env) gem-home env-whitelist))))
 
 (schema/defn ^:always-validate empty-scripting-container :- ScriptingContainer
   "Creates a clean instance of a JRuby `ScriptingContainer` with no code loaded."
   [ruby-load-path :- [schema/Str]
    gem-home :- schema/Str
-   compile-mode :- jruby-schemas/SupportedJRubyCompileModes]
+   compile-mode :- jruby-schemas/SupportedJRubyCompileModes
+   env-whitelist :- [schema/Str]]
   (-> (ScriptingContainer. LocalContextScope/SINGLETHREAD)
-      (init-jruby-config ruby-load-path gem-home compile-mode)))
+      (init-jruby-config ruby-load-path gem-home compile-mode env-whitelist)))
 
 (schema/defn ^:always-validate create-scripting-container :- ScriptingContainer
   "Creates an instance of `org.jruby.embed.ScriptingContainer`."
   [ruby-load-path :- [schema/Str]
    gem-home :- schema/Str
-   compile-mode :- jruby-schemas/SupportedJRubyCompileModes]
+   compile-mode :- jruby-schemas/SupportedJRubyCompileModes
+   env-whitelist :- [schema/Str]]
   ;; for information on other legal values for `LocalContextScope`, there
   ;; is some documentation available in the JRuby source code; e.g.:
   ;; https://github.com/jruby/jruby/blob/1.7.11/core/src/main/java/org/jruby/embed/LocalContextScope.java#L58
   ;; I'm convinced that this is the safest and most reasonable value
   ;; to use here, but we could potentially explore optimizations in the future.
-  (doto (empty-scripting-container ruby-load-path gem-home compile-mode)
+  (doto (empty-scripting-container ruby-load-path gem-home compile-mode env-whitelist)
     ;; As of JRuby 1.7.20 (and the associated 'jruby-openssl' it pulls in),
     ;; we need to explicitly require 'jar-dependencies' so that it is used
     ;; to manage jar loading.  We do this so that we can instruct
@@ -150,7 +154,7 @@
    id :- schema/Int
    config :- jruby-schemas/JRubyConfig
    flush-instance-fn :- IFn]
-  (let [{:keys [ruby-load-path gem-home compile-mode]} config]
+  (let [{:keys [ruby-load-path gem-home compile-mode env-whitelist]} config]
     (when-not ruby-load-path
       (throw (Exception.
                "JRuby service missing config value 'ruby-load-path'")))
@@ -158,7 +162,8 @@
     (let [scripting-container (create-scripting-container
                                ruby-load-path
                                gem-home
-                               compile-mode)]
+                               compile-mode
+                               env-whitelist)]
       (let [instance (jruby-schemas/map->JRubyInstance
                       {:pool pool
                        :id id
@@ -270,10 +275,11 @@
   e.g. for the ruby, gem, and irb subcommands.  Internal core services should
   use `create-scripting-container` instead of `new-main`."
   [config :- jruby-schemas/JRubyConfig]
-  (let [{:keys [ruby-load-path gem-home compile-mode]} config
+  (let [{:keys [ruby-load-path gem-home compile-mode env-whitelist]} config
         jruby-config (init-jruby-config
                       (RubyInstanceConfig.)
                       ruby-load-path
                       gem-home
-                      compile-mode)]
+                      compile-mode
+                      env-whitelist)]
     (Main. jruby-config)))

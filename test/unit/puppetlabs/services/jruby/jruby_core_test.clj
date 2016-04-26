@@ -14,6 +14,7 @@
    {:name "puppet-server", :update-server-url "http://localhost:11111"},
    :jruby
    {:gem-home "./target/jruby-gem-home",
+    :env-whitelist ["HOME" "PATH"]
     :ruby-load-path ["./ruby/puppet/lib" "./ruby/facter/lib" "./ruby/hiera/lib"]}})
 
 (defmacro with-stdin-str
