@@ -16,7 +16,6 @@
 (def ruby-load-path [])
 (def gem-home "./target/jruby-gem-home")
 (def compile-mode :off)
-(def env-whitelist ["HOME" "PATH"])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; JRuby Test util functions
@@ -41,8 +40,7 @@
     (jruby-core/initialize-config
       {:jruby
        {:ruby-load-path  ruby-load-path
-        :gem-home        gem-home
-        :env-whitelist   env-whitelist}}))
+        :gem-home        gem-home}}))
   ([options]
    (merge (jruby-config) options)))
 

@@ -52,15 +52,11 @@
     * :compile-mode - The value to use for JRuby's CompileMode setting.  Legal
         values are `:jit`, `:force`, and `:off`.  Defaults to `:off`.
 
-    * :env-whitelist - a vector of environment variable names to pass to the
-        scripting container.
-
     * :max-active-instances - The maximum number of JRubyInstances that
         will be pooled."
   {:ruby-load-path [schema/Str]
    :gem-home schema/Str
    :compile-mode SupportedJRubyCompileModes
-   :env-whitelist [schema/Str]
    :borrow-timeout schema/Int
    :max-active-instances schema/Int
    :max-requests-per-instance schema/Int})
