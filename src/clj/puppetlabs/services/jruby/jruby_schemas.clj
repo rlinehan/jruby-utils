@@ -40,6 +40,9 @@
   "Schema defining the supported values for the JRuby CompileMode setting."
   (apply schema/enum supported-jruby-compile-modes))
 
+(def OtherConfig
+  {schema/Keyword schema/Any})
+
 (def JRubyConfig
   "Schema defining the config map for the JRuby pooling functions.
 
@@ -84,10 +87,11 @@
 
 (def PoolContext
   "The data structure that stores all JRuby pools and the original configuration."
-  {:config                JRubyConfig
-   :pool-agent            JRubyPoolAgent
-   :flush-instance-agent  JRubyPoolAgent
-   :pool-state            PoolStateContainer})
+  {:jruby-config JRubyConfig
+   :pool-agent JRubyPoolAgent
+   :flush-instance-agent JRubyPoolAgent
+   :pool-state PoolStateContainer
+   (schema/optional-key :config) OtherConfig})
 
 (def JRubyInstanceState
   "State metadata for an individual JRubyInstance"
@@ -105,7 +109,8 @@
    max-requests :- schema/Int
    flush-instance-fn :- IFn
    state :- JRubyInstanceStateContainer
-   scripting-container :- ScriptingContainer]
+   scripting-container :- ScriptingContainer
+   config :- OtherConfig]
   Object
   (toString [this] (format "%s@%s {:id %s :state (Atom: %s)}"
                            (.getName JRubyInstance)

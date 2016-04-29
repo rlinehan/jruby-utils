@@ -3,6 +3,8 @@
             [puppetlabs.services.jruby.jruby-testutils :as jruby-testutils]
             [puppetlabs.services.jruby.jruby-internal :as jruby-internal]))
 
+;; todo, may want to add back a test for this
+
 (deftest jruby-env-vars
   (testing "the environment used by the JRuby interpreters"
     (let [jruby-interpreter (jruby-internal/create-scripting-container

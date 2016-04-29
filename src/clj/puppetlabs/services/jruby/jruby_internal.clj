@@ -1,11 +1,9 @@
 (ns puppetlabs.services.jruby.jruby-internal
   (:require [schema.core :as schema]
             [puppetlabs.services.jruby.jruby-schemas :as jruby-schemas]
-            [clojure.tools.logging :as log]
-            [puppetlabs.kitchensink.core :as ks])
+            [clojure.tools.logging :as log])
   (:import (com.puppetlabs.jruby_utils.pool JRubyPool)
            (puppetlabs.services.jruby.jruby_schemas JRubyInstance PoisonPill ShutdownPoisonPill)
-           (java.util HashMap)
            (org.jruby CompatVersion Main RubyInstanceConfig RubyInstanceConfig$CompileMode)
            (org.jruby.embed LocalContextScope)
            (java.util.concurrent TimeUnit)
@@ -148,9 +146,10 @@
   "Creates a new JRubyInstance and adds it to the pool."
   [pool :- jruby-schemas/pool-queue-type
    id :- schema/Int
-   config :- jruby-schemas/JRubyConfig
-   flush-instance-fn :- IFn]
-  (let [{:keys [ruby-load-path gem-home compile-mode]} config]
+   jruby-config :- jruby-schemas/JRubyConfig
+   flush-instance-fn :- IFn
+   config :- jruby-schemas/OtherConfig]
+  (let [{:keys [ruby-load-path gem-home compile-mode]} jruby-config]
     (when-not ruby-load-path
       (throw (Exception.
                "JRuby service missing config value 'ruby-load-path'")))
@@ -162,10 +161,11 @@
       (let [instance (jruby-schemas/map->JRubyInstance
                       {:pool pool
                        :id id
-                       :max-requests (:max-requests-per-instance config)
+                       :max-requests (:max-requests-per-instance jruby-config)
                        :flush-instance-fn flush-instance-fn
                        :state (atom {:borrow-count 0})
-                       :scripting-container scripting-container})]
+                       :scripting-container scripting-container
+                       :config config})]
         (.register pool instance)
         instance))))
 
