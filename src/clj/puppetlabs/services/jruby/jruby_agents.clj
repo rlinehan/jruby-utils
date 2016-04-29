@@ -41,10 +41,8 @@
   [{:keys [pool-state] :as pool-context} :- jruby-schemas/PoolContext
    config :- jruby-schemas/JRubyConfig]
   (let [pool (:pool @pool-state)]
-    (log/debug (str "Initializing JRubyInstances with the following JRuby settings:\n "
-                    (ks/pprint-to-string (:jruby-config pool-context))
-                    "\nand other settings:\n"
-                    (ks/pprint-to-string (:config pool-context))))
+    (log/debug (str "Initializing JRubyInstances with the following settings:\n"
+                    (ks/pprint-to-string config)))
     (try
       (let [count (.remainingCapacity pool)]
         (dotimes [i count]
