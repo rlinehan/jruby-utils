@@ -99,19 +99,16 @@
                      (nil? (schema/check JRubyInstanceState @%)))
                'JRubyInstanceState))
 
-(schema/defrecord JRubyInstance
+(definterface JRubyInstance)
+
+(schema/defrecord JRubyInstanceRecord
   [pool :- pool-queue-type
    id :- schema/Int
    max-requests :- schema/Int
    flush-instance-fn :- IFn
    state :- JRubyInstanceStateContainer
    scripting-container :- ScriptingContainer]
-  Object
-  (toString [this] (format "%s@%s {:id %s :state (Atom: %s)}"
-                           (.getName JRubyInstance)
-                           (Integer/toHexString (.hashCode this))
-                           id
-                           @state)))
+  JRubyInstance)
 
 (defn jruby-instance?
   [x]

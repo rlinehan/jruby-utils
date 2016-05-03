@@ -4,7 +4,7 @@
             [clojure.tools.logging :as log]
             [puppetlabs.kitchensink.core :as ks])
   (:import (com.puppetlabs.jruby_utils.pool JRubyPool)
-           (puppetlabs.services.jruby.jruby_schemas JRubyInstance PoisonPill ShutdownPoisonPill)
+           (puppetlabs.services.jruby.jruby_schemas JRubyInstanceRecord PoisonPill ShutdownPoisonPill JRubyInstance)
            (java.util HashMap)
            (org.jruby CompatVersion Main RubyInstanceConfig RubyInstanceConfig$CompileMode)
            (org.jruby.embed LocalContextScope)
@@ -159,7 +159,7 @@
                                ruby-load-path
                                gem-home
                                compile-mode)]
-      (let [instance (jruby-schemas/map->JRubyInstance
+      (let [instance (jruby-schemas/map->JRubyInstanceRecord
                       {:pool pool
                        :id id
                        :max-requests (:max-requests-per-instance config)
