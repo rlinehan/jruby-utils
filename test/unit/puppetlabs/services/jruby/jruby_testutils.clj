@@ -51,6 +51,11 @@
 (def default-flush-fn
   identity)
 
+(def create-lifecycle-fns
+  {:initialize identity
+   :shutdown identity
+   :shutdown-on-error default-shutdown-fn})
+
 (defn create-pool-instance
   ([]
    (create-pool-instance (jruby-config {:max-active-instances 1})))

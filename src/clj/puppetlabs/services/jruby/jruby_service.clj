@@ -25,7 +25,9 @@
           agent-shutdown-fn (partial shutdown-on-error service-id)]
       (core/verify-config-found! config)
       (log/info "Initializing the JRuby service")
-      (let [pool-context (core/create-pool-context config agent-shutdown-fn)]
+      (let [pool-context (core/create-pool-context config {:initialize identity
+                                                           :shutdown identity
+                                                           :shutdown-on-error agent-shutdown-fn})]
         (jruby-agents/send-prime-pool! pool-context)
         (-> context
             (assoc :pool-context pool-context)

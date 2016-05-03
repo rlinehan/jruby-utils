@@ -47,7 +47,7 @@
 (deftest test-jruby-service-core-funcs
   (let [pool-size        2
         config           (jruby-testutils/jruby-config {:max-active-instances pool-size})
-        pool-context (jruby-core/create-pool-context config jruby-testutils/default-shutdown-fn)
+        pool-context (jruby-core/create-pool-context config jruby-testutils/create-lifecycle-fns)
         pool             (jruby-core/get-pool pool-context)]
 
     (testing "The pool should not yet be full as it is being primed in the
@@ -103,7 +103,7 @@
 (deftest prime-pools-failure
   (let [pool-size 2
         config        (jruby-testutils/jruby-config {:max-active-instances pool-size})
-        pool-context  (jruby-core/create-pool-context config jruby-testutils/default-shutdown-fn)
+        pool-context  (jruby-core/create-pool-context config jruby-testutils/create-lifecycle-fns)
         err-msg       (re-pattern "Unable to borrow JRubyInstance from pool")]
     (with-redefs [jruby-internal/create-pool-instance! (fn [_] (throw (IllegalStateException. "BORK!")))]
                  (is (thrown? IllegalStateException (jruby-agents/prime-pool! pool-context config))))
@@ -125,7 +125,7 @@
 (deftest test-default-pool-size
   (logutils/with-test-logging
     (let [config (jruby-testutils/jruby-config)
-          pool (jruby-core/create-pool-context config jruby-testutils/default-shutdown-fn)
+          pool (jruby-core/create-pool-context config jruby-testutils/create-lifecycle-fns)
           pool-state @(:pool-state pool)]
       (is (= (jruby-core/default-pool-size (ks/num-cpus)) (:size pool-state))))))
 
@@ -135,7 +135,7 @@
   ([max-requests max-instances]
    (let [config (jruby-testutils/jruby-config {:max-active-instances max-instances
                                                       :max-requests-per-instance max-requests})
-         pool-context (jruby-core/create-pool-context config jruby-testutils/default-shutdown-fn)]
+         pool-context (jruby-core/create-pool-context config jruby-testutils/create-lifecycle-fns)]
      (jruby-agents/prime-pool! pool-context config)
      pool-context)))
 
