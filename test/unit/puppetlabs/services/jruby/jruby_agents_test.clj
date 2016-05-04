@@ -11,7 +11,8 @@
             [puppetlabs.services.jruby.jruby-schemas :as jruby-schemas]
             [puppetlabs.services.jruby.jruby-internal :as jruby-internal]
             [puppetlabs.services.jruby.jruby-agents :as jruby-agents]
-            [puppetlabs.trapperkeeper.testutils.logging :as logutils])
+            [puppetlabs.trapperkeeper.testutils.logging :as logutils]
+            [puppetlabs.services.jruby.jruby-core :as core])
   (:import (puppetlabs.services.jruby.jruby_schemas RetryPoisonPill JRubyInstance)
            (com.puppetlabs.jruby_utils.pool JRubyPool)))
 
@@ -105,7 +106,7 @@
 (deftest next-instance-id-test
   (let [pool-context (jruby-core/create-pool-context
                        (jruby-testutils/jruby-config {:max-active-instances 8})
-                       jruby-testutils/create-lifecycle-fns)]
+                       (jruby-testutils/create-lifecycle-fns))]
     (testing "next instance id should be based on the pool size"
       (is (= 10 (jruby-agents/next-instance-id 2 pool-context)))
       (is (= 100 (jruby-agents/next-instance-id 92 pool-context))))

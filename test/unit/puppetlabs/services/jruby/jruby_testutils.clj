@@ -51,17 +51,20 @@
 (def default-flush-fn
   identity)
 
-(def create-lifecycle-fns
-  {:initialize identity
-   :shutdown identity
-   :shutdown-on-error default-shutdown-fn})
+(defn create-lifecycle-fns
+  ([]
+   (create-lifecycle-fns nil))
+  ([lifecycle-map]
+   {:initialize (:initialize lifecycle-map jruby-internal/create-default-pool-instance!)
+    :shutdown (:shutdown lifecycle-map jruby-internal/cleanup-pool-instance!)
+    :shutdown-on-error (:shutdown-on-error lifecycle-map default-shutdown-fn)}))
 
 (defn create-pool-instance
   ([]
    (create-pool-instance (jruby-config {:max-active-instances 1})))
   ([config]
    (let [pool (jruby-internal/instantiate-free-pool 1)]
-     (jruby-internal/create-pool-instance! pool 1 config default-flush-fn))))
+     (jruby-internal/create-default-pool-instance! pool 1 config default-flush-fn))))
 
 (schema/defn ^:always-validate
   create-mock-pool-instance :- JRubyInstance
@@ -85,7 +88,7 @@
   mock JRubyInstances."
   [f]
   (with-redefs
-    [jruby-internal/create-pool-instance! create-mock-pool-instance]
+    [jruby-internal/create-default-pool-instance! create-mock-pool-instance]
     (f)))
 
 (defmacro with-mock-pool-instance-fixture

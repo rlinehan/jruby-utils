@@ -34,7 +34,7 @@
    (str "If there is an exception while putting a JRubyInstance in "
         "the pool the application should shut down.")
     (logging/with-test-logging
-     (with-redefs [jruby-internal/create-pool-instance!
+     (with-redefs [jruby-internal/create-default-pool-instance!
                    (fn [& _] (throw (Exception. "42")))]
        (let [got-expected-exception (atom false)]
          (try

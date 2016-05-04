@@ -6,7 +6,8 @@
             [puppetlabs.trapperkeeper.services :as tk-services]
             [puppetlabs.services.protocols.jruby :as jruby]
             [slingshot.slingshot :as sling]
-            [puppetlabs.services.jruby.jruby-schemas :as jruby-schemas]))
+            [puppetlabs.services.jruby.jruby-schemas :as jruby-schemas]
+            [puppetlabs.services.jruby.jruby-internal :as jruby-internal]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public
@@ -25,8 +26,8 @@
           agent-shutdown-fn (partial shutdown-on-error service-id)]
       (core/verify-config-found! config)
       (log/info "Initializing the JRuby service")
-      (let [pool-context (core/create-pool-context config {:initialize identity
-                                                           :shutdown identity
+      (let [pool-context (core/create-pool-context config {:initialize jruby-internal/create-default-pool-instance!
+                                                           :shutdown jruby-internal/cleanup-pool-instance!
                                                            :shutdown-on-error agent-shutdown-fn})]
         (jruby-agents/send-prime-pool! pool-context)
         (-> context
