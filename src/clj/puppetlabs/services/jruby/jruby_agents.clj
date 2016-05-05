@@ -49,7 +49,8 @@
         (dotimes [i count]
           (let [id (inc i)]
             (log/debugf "Priming JRubyInstance %d of %d" id count)
-            (init-fn pool id config (partial send-flush-instance! pool-context))
+            (jruby-internal/create-pool-instance!
+             pool id config (partial send-flush-instance! pool-context) init-fn)
             (log/infof "Finished creating JRubyInstance %d of %d"
                        id count))))
       (catch Exception e
@@ -69,7 +70,8 @@
   (let [init-fn (get-in pool-context [:lifecycle :initialize])
         shutdown-fn (get-in pool-context [:lifecycle :shutdown])]
     (shutdown-fn instance)
-    (init-fn new-pool new-id config (partial send-flush-instance! pool-context))))
+    (jruby-internal/create-pool-instance!
+     new-pool new-id config (partial send-flush-instance! pool-context) init-fn)))
 
 (schema/defn ^:always-validate
   pool-initialized? :- schema/Bool
@@ -104,7 +106,7 @@
           (try
             (shutdown-fn instance)
             (when refill?
-              (init-fn new-pool id config (partial send-flush-instance! pool-context))
+              (jruby-internal/create-pool-instance! new-pool id config (partial send-flush-instance! pool-context) init-fn)
               (log/infof "Finished creating JRubyInstance %d of %d"
                          id old-pool-size))
             (finally

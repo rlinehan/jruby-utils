@@ -149,7 +149,8 @@
   [pool :- jruby-schemas/pool-queue-type
    id :- schema/Int
    config :- jruby-schemas/JRubyConfig
-   flush-instance-fn :- IFn]
+   flush-instance-fn :- IFn
+   init-fn :- IFn]
   (let [{:keys [ruby-load-path gem-home compile-mode]} config]
     (when-not ruby-load-path
       (throw (Exception.
@@ -166,6 +167,7 @@
                        :flush-instance-fn flush-instance-fn
                        :state (atom {:borrow-count 0})
                        :scripting-container scripting-container})]
+        (init-fn instance)
         (.register pool instance)
         instance))))
 
