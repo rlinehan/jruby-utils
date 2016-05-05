@@ -52,7 +52,7 @@
   identity)
 
 (def create-default-lifecycle-fns
-  {:initialize jruby-internal/create-pool-instance!
+  {:initialize (fn [x] x)
    :shutdown jruby-internal/cleanup-pool-instance!
    :shutdown-on-error default-shutdown-fn})
 
@@ -61,14 +61,15 @@
    (create-pool-instance (jruby-config {:max-active-instances 1})))
   ([config]
    (let [pool (jruby-internal/instantiate-free-pool 1)]
-     (jruby-internal/create-pool-instance! pool 1 config default-flush-fn))))
+     (jruby-internal/create-pool-instance! pool 1 config default-flush-fn identity))))
 
 (schema/defn ^:always-validate
   create-mock-pool-instance :- JRubyInstance
   [pool :- jruby-schemas/pool-queue-type
    id :- schema/Int
    config :- jruby-schemas/JRubyConfig
-   flush-instance-fn :- IFn]
+   flush-instance-fn :- IFn
+   init-fn :- IFn]
   (let [instance (jruby-schemas/map->JRubyInstanceRecord
                   {:pool pool
                    :id id
@@ -76,8 +77,9 @@
                    :flush-instance-fn flush-instance-fn
                    :state (atom {:borrow-count 0})
                    :scripting-container (ScriptingContainer.
-                                         LocalContextScope/SINGLETHREAD)})]
-    (.register pool instance)
+                                         LocalContextScope/SINGLETHREAD)})
+        modified-instance (init-fn instance)]
+    (.register pool modified-instance)
     instance))
 
 (defn mock-pool-instance-fixture

@@ -105,10 +105,10 @@
         config        (jruby-testutils/jruby-config {:max-active-instances pool-size})
         pool-context (jruby-core/create-pool-context config jruby-testutils/create-default-lifecycle-fns)
         err-msg       (re-pattern "Unable to borrow JRubyInstance from pool")]
-    (is (thrown? IllegalStateException (jruby-agents/prime-pool!
+   (is (thrown? IllegalStateException (jruby-agents/prime-pool!
                                         (assoc-in pool-context [:lifecycle :initialize]
-                                                  {:initialize (fn [_ _ _ _]
-                                                                 (throw (IllegalStateException. "BORK!")))})
+                                                  (fn [_]
+                                                    (throw (IllegalStateException. "BORK!"))))
                                         config)))
     (testing "borrow and borrow-with-timeout both throw an exception if the pool failed to initialize"
       (is (thrown-with-msg? IllegalStateException

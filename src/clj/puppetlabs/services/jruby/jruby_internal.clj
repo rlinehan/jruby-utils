@@ -166,9 +166,9 @@
                        :max-requests (:max-requests-per-instance config)
                        :flush-instance-fn flush-instance-fn
                        :state (atom {:borrow-count 0})
-                       :scripting-container scripting-container})]
-        (init-fn instance)
-        (.register pool instance)
+                       :scripting-container scripting-container})
+            modified-instance (init-fn instance)]
+        (.register pool modified-instance)
         instance))))
 
 (schema/defn ^:always-validate
