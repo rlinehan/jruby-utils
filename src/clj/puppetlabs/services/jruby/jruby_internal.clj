@@ -144,7 +144,7 @@
   (log/infof "Cleaned up old JRubyInstance with id %s." (:id instance)))
 
 (schema/defn ^:always-validate
-  create-default-pool-instance! :- JRubyInstance
+  create-pool-instance! :- JRubyInstance
   "Creates a new JRubyInstance and adds it to the pool."
   [pool :- jruby-schemas/pool-queue-type
    id :- schema/Int
