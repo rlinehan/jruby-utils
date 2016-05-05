@@ -105,8 +105,8 @@
 
 (deftest next-instance-id-test
   (let [pool-context (jruby-core/create-pool-context
-                       (jruby-testutils/jruby-config {:max-active-instances 8})
-                       (jruby-testutils/create-lifecycle-fns))]
+                      (jruby-testutils/jruby-config {:max-active-instances 8})
+                      jruby-testutils/create-default-lifecycle-fns)]
     (testing "next instance id should be based on the pool size"
       (is (= 10 (jruby-agents/next-instance-id 2 pool-context)))
       (is (= 100 (jruby-agents/next-instance-id 92 pool-context))))

@@ -51,13 +51,10 @@
 (def default-flush-fn
   identity)
 
-(defn create-lifecycle-fns
-  ([]
-   (create-lifecycle-fns nil))
-  ([lifecycle-map]
-   {:initialize (:initialize lifecycle-map jruby-internal/create-default-pool-instance!)
-    :shutdown (:shutdown lifecycle-map jruby-internal/cleanup-pool-instance!)
-    :shutdown-on-error (:shutdown-on-error lifecycle-map default-shutdown-fn)}))
+(def create-default-lifecycle-fns
+  {:initialize jruby-internal/create-default-pool-instance!
+   :shutdown jruby-internal/cleanup-pool-instance!
+   :shutdown-on-error default-shutdown-fn})
 
 (defn create-pool-instance
   ([]
