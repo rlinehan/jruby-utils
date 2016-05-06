@@ -53,7 +53,7 @@
 
 (def create-default-lifecycle-fns
   {:initialize (fn [x] x)
-   :shutdown jruby-internal/cleanup-pool-instance!
+   :shutdown identity
    :shutdown-on-error default-shutdown-fn})
 
 (defn create-pool-instance

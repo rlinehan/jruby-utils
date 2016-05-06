@@ -69,7 +69,7 @@
    config :- jruby-schemas/JRubyConfig]
   (let [init-fn (get-in pool-context [:lifecycle :initialize])
         shutdown-fn (get-in pool-context [:lifecycle :shutdown])]
-    (shutdown-fn instance)
+    (jruby-internal/cleanup-pool-instance! instance shutdown-fn)
     (jruby-internal/create-pool-instance!
      new-pool new-id config (partial send-flush-instance! pool-context) init-fn)))
 
@@ -104,7 +104,7 @@
                         jruby-internal/borrow-without-timeout-fn
                         old-pool)]
           (try
-            (shutdown-fn instance)
+            (jruby-internal/cleanup-pool-instance! instance shutdown-fn)
             (when refill?
               (jruby-internal/create-pool-instance! new-pool id config (partial send-flush-instance! pool-context) init-fn)
               (log/infof "Finished creating JRubyInstance %d of %d"

@@ -145,6 +145,7 @@
   initialize-config :- jruby-schemas/JRubyConfig
   [config :- {schema/Keyword schema/Any}]
   (-> (get-in config [:jruby])
+      (dissoc :lifecycle-fns)
       (update-in [:compile-mode] #(keyword (or % default-jruby-compile-mode)))
       (update-in [:borrow-timeout] #(or % default-borrow-timeout))
       (update-in [:max-active-instances] #(or % (default-pool-size (ks/num-cpus))))

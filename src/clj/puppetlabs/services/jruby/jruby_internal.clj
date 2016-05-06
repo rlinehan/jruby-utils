@@ -135,11 +135,10 @@
 (schema/defn ^:always-validate
   cleanup-pool-instance!
   "Cleans up and cleanly terminates a JRubyInstance and removes it from the pool."
-  [{:keys [scripting-container pool] :as instance} :- JRubyInstance]
+  [{:keys [scripting-container pool] :as instance} :- JRubyInstance
+   shutdown-fn :- IFn]
   (.unregister pool instance)
-  ;; TODO: need to add support for a callback hook, so that consumers like
-  ;; puppet-server can do their own cleanup.
-  ;(.terminate jruby-puppet)
+  (shutdown-fn instance)
   (.terminate scripting-container)
   (log/infof "Cleaned up old JRubyInstance with id %s." (:id instance)))
 

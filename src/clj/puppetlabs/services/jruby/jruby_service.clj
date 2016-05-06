@@ -21,14 +21,16 @@
                            [:ShutdownService shutdown-on-error]]
   (init
     [this context]
-    (let [config (core/initialize-config (get-config))
+    (let [lifecycle-fns (-> (get-in (get-config) [:jruby :lifecycle-fns])
+                            (update-in [:initialize] #(or % identity))
+                            (update-in [:shutdown] #(or % identity)))
+          config (core/initialize-config (get-config))
           service-id (tk-services/service-id this)
           agent-shutdown-fn (partial shutdown-on-error service-id)]
       (core/verify-config-found! config)
       (log/info "Initializing the JRuby service")
-      (let [pool-context (core/create-pool-context config {:initialize identity
-                                                           :shutdown jruby-internal/cleanup-pool-instance!
-                                                           :shutdown-on-error agent-shutdown-fn})]
+      (let [lifecycle-fns (assoc lifecycle-fns :shutdown-on-error agent-shutdown-fn)
+            pool-context (core/create-pool-context config lifecycle-fns)]
         (jruby-agents/send-prime-pool! pool-context)
         (-> context
             (assoc :pool-context pool-context)
