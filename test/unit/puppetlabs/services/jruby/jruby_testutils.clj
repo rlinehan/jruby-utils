@@ -6,7 +6,7 @@
             [puppetlabs.trapperkeeper.services :as tk-service]
             [schema.core :as schema])
   (:import (org.jruby.embed LocalContextScope)
-           (puppetlabs.services.jruby.jruby_schemas JRubyInstanceRecord JRubyInstance)
+           (puppetlabs.services.jruby.jruby_schemas JRubyInstance JRubyInstance)
            (clojure.lang IFn)
            (com.puppetlabs.jruby_utils.jruby ScriptingContainer)))
 
@@ -70,7 +70,7 @@
    config :- jruby-schemas/JRubyConfig
    flush-instance-fn :- IFn
    init-fn :- IFn]
-  (let [instance (jruby-schemas/map->JRubyInstanceRecord
+  (let [instance (jruby-schemas/map->JRubyInstance
                   {:pool pool
                    :id id
                    :max-requests (:max-requests-per-instance config)

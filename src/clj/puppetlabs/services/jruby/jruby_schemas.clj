@@ -105,16 +105,13 @@
                      (nil? (schema/check JRubyInstanceState @%)))
                'JRubyInstanceState))
 
-(definterface JRubyInstance)
-
-(schema/defrecord JRubyInstanceRecord
+(schema/defrecord JRubyInstance
   [pool :- pool-queue-type
    id :- schema/Int
    max-requests :- schema/Int
    flush-instance-fn :- IFn
    state :- JRubyInstanceStateContainer
-   scripting-container :- ScriptingContainer]
-  JRubyInstance)
+   scripting-container :- ScriptingContainer])
 
 (defn jruby-instance?
   [x]

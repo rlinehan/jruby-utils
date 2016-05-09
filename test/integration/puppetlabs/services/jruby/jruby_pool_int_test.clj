@@ -6,7 +6,9 @@
             [puppetlabs.trapperkeeper.services :as tk-services]
             [puppetlabs.services.protocols.jruby :as jruby-protocol]
             [puppetlabs.services.jruby.jruby-service :as jruby]
-            [puppetlabs.services.jruby.jruby-agents :as jruby-agents]))
+            [puppetlabs.services.jruby.jruby-agents :as jruby-agents]
+            [puppetlabs.services.jruby.jruby-core :as core]
+            [clojure.tools.logging :as log]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Utilities
@@ -323,3 +325,18 @@
          ;; that could otherwise cause an annoying error message about the
          ;; pool not being full at shut down to be displayed.
          (timed-await (:flush-instance-agent pool-context)))))))
+
+;(deftest initialization-and-cleanup-hooks-test
+;  (let [config (jruby-testutils/jruby-config {:max-active-instances 1
+;                                              :max-requests-per-instance 10
+;                                              :borrow-timeout default-borrow-timeout})
+;       lifecycle-fns {:initialize (fn [instance] (assoc instance :foo "FOO"))
+;                      :shutdown (fn [instance] (log/error "Terminating " (:foo instance)))
+;                      :shutdown-on-error identity}
+;       pool-context (core/create-pool-context config lifecycle-fns)]
+;    (jruby-agents/send-prime-pool! pool-context)
+;
+;    (println pool-context)
+;
+;
+;    ))
