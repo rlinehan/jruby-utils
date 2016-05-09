@@ -327,53 +327,32 @@
          ;; pool not being full at shut down to be displayed.
          (timed-await (:flush-instance-agent pool-context)))))))
 
-(deftest initialization-and-cleanup-hooks-without-trapperkeeper-test
-  (let [config (jruby-testutils/jruby-config {:max-active-instances 1
-                                              :max-requests-per-instance 10
-                                              :borrow-timeout default-borrow-timeout})
-        lifecycle-fns {:initialize (fn [instance] (assoc instance :foo "FOO"))
-                       :shutdown (fn [instance] (log/error "Terminating " (:foo instance)))
-                       :shutdown-on-error (fn [f]
-                                            (try
-                                              (f)
-                                              (catch Throwable t
-                                                (log/error t "shutdown-on-error triggered because of exception!"))))}
-        pool-context (core/create-pool-context config lifecycle-fns)
-        on-complete (promise)]
-    (jruby-agents/send-prime-pool! pool-context)
-
-    #_(println pool-context)
-
-    (logutils/with-test-logging
-       (jruby-agents/send-flush-pool-for-shutdown! pool-context on-complete)
-        @on-complete
-        (is (logged? "Terminating FOO")))))
-
 (deftest initialization-and-cleanup-hooks-test
   (let [lifecycle-fns {:initialize (fn [instance] (assoc instance :foo "FOO"))
-                       :shutdown (fn [instance] (log/error "Terminating " (:foo instance)))}
+                       :shutdown (fn [instance] (log/error "Terminating" (:foo instance)))}
         config (assoc-in (jruby-testutils/jruby-tk-config
                           (jruby-testutils/jruby-config
                            {:max-active-instances 1
                             :max-requests-per-instance 10
                             :borrow-timeout default-borrow-timeout}))
                          [:jruby :lifecycle-fns] lifecycle-fns)]
-    (tk-testutils/with-app-with-config
-     app
-     [jruby/jruby-pooled-service]
-     config
-     (let [jruby-service (tk-app/get-service app :JRubyService)
-           context (tk-services/service-context jruby-service)
-           pool-context (:pool-context context)]
-       ;; set a ruby constant in each instance so that we can recognize them
-       (is (true? (set-constants-and-verify pool-context 1)))
+    (logutils/with-test-logging
+      (tk-testutils/with-app-with-config
+       app
+       [jruby/jruby-pooled-service]
+       config
+       (let [jruby-service (tk-app/get-service app :JRubyService)
+             context (tk-services/service-context jruby-service)
+             pool-context (:pool-context context)]
+         ;; set a ruby constant in each instance so that we can recognize them
+         (is (true? (set-constants-and-verify pool-context 1)))
 
-       (let [instance (jruby-protocol/borrow-instance jruby-service
-                                                      :initialization-and-cleanup-hooks-test)]
-         (is (= "FOO" (:foo instance)))
-         (jruby-protocol/return-instance jruby-service instance :initialization-and-cleanup-hooks-test))
+         (let [instance (jruby-protocol/borrow-instance jruby-service
+                                                        :initialization-and-cleanup-hooks-test)]
+           (is (= "FOO" (:foo instance)))
+           (jruby-protocol/return-instance jruby-service instance :initialization-and-cleanup-hooks-test))
 
-       (jruby-protocol/flush-jruby-pool! jruby-service)
-       ; wait until the flush is complete
-       (await (get-in context [:pool-context :pool-agent]))
-       (is (logged? #"Terminating FOO"))))))
+         (jruby-protocol/flush-jruby-pool! jruby-service)
+         ; wait until the flush is complete
+         (await (get-in context [:pool-context :pool-agent]))
+         (is (logged? #"Terminating FOO")))))))
