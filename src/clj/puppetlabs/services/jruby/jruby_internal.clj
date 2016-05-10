@@ -70,10 +70,10 @@
       "JARS_NO_REQUIRE" "true"
       "JARS_REQUIRE" "false")))
 
-(schema/defn default-initialize-env-variables :- ScriptingContainer
+(schema/defn default-initialize-env-variables :- jruby-schemas/ConfigurableJRuby
   "Default lifecycle fn for setting environment variables on the
   scripting container"
-  [scripting-container :- ScriptingContainer
+  [scripting-container :- jruby-schemas/ConfigurableJRuby
    gem-home :- schema/Str]
   (.setEnvironment scripting-container (managed-environment (get-system-env) gem-home))
   scripting-container)
